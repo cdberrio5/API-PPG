@@ -4,11 +4,9 @@
   "description": "Api para recibir datos por puerto serial y enviarlos por sockets",
   "main": "index.js",
   "scripts": {
-    "start": "npm run pm2 && npm run kill && npm run service && npm run save",
-    "pm2": "npm install pm2 -g",
-    "service": "pm2 start index.js",
-    "save": "pm2 save",
-    "kill": "pm2 kill"
+    "start": "npm run qckwinsvc && npm run service",
+    "qckwinsvc": "npm install qckwinsvc -g",
+    "service": "qckwinsvc"
   },
   "keywords": [
     "API",

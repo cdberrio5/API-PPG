@@ -4,17 +4,17 @@ const ip = require('ip');
 const { EventEmitter } = require('events');
 const commandLineArgs = require('command-line-args');
 const { Server } = require('socket.io');
+const cors = require("cors");
 
 const listSerialPorts = SerialPort.SerialPort.list;
 
 class SerialController {
-  constructor(io, app) {
+  constructor(app) {
     this.serialCache = {};
     this.eventEmitter = new EventEmitter();
     this.serialPortRetryInterval = 5000;
-    this.io = io;
     this.app = app;
-    this.serverPort = 3000;
+    this.serverPort = 8090;
   }
 
   async detectSerialPorts() {
@@ -45,11 +45,11 @@ class SerialController {
       const serialPort = new SerialPort.SerialPort({ path: port, baudRate: 9600 });
 
       serialPort.on('data', (data) => {
-        const dataString = data.toString();
+        const dataString = data.toString().trim();
         this.serialCache[port] = dataString;
 
         console.log('Enviando datos:', port, dataString);
-        this.io.emit('web-message', { port, data: dataString });
+        this.io.emit('web-message', port+": "+dataString);
       });
 
       serialPort.on('error', (error) => {
@@ -57,9 +57,7 @@ class SerialController {
         serialPort.close();
         reject(error);
       });
-
-      serialPort.emit('')
-
+      
       serialPort.on('open', () => {
         console.log(`Conectado al puerto: ${port}`);
         resolve();
@@ -78,6 +76,11 @@ class SerialController {
     try {
       this.app.use(express.static('public'));
 
+      this.app.use(cors({
+        origin: "*",
+        credentials: true
+      }));
+
       this.app.get('/hello', (req, res) => {
         res.status(200).send('Hello World!');
       });
@@ -86,20 +89,14 @@ class SerialController {
         console.log(`Listening http://${ip.address()}:${this.serverPort}`);
       });
 
-      const io = new Server(server);
-
-      io.on('connection', (socket) => {
-        console.log(`Socket ${socket.id} connected...`);
-
-        socket.on('web-message', (data) => {
-          io.sockets.emit('web-message', data + ' comida');
-          console.log(data);
-        });
-      });
-
-      this.eventEmitter.on('serialport-data', (portname, data) => {
-        console.log(`${portname}: ${data}`, 83);
-        io.sockets.emit('web-message', `${portname}: ${data}`);
+      this.io = new Server(server, {
+        cors: {
+          origin: "http://smedapp01",
+          methods: ["GET", "POST"],
+          transports: ['websocket', 'polling'],
+          credentials: true
+        },
+        allowEIO3: true
       });
     } catch (error) {
       console.error('Error initializing server:', error);
@@ -133,8 +130,8 @@ class SerialController {
         console.log('Available Serial Ports:', ports);
       } else {
         const loadConfig = await this.loadConfig();
-        await this.initFromConfigSerialPorts(loadConfig);
         await this.initServer();
+        await this.initFromConfigSerialPorts(loadConfig);
       }
     } catch (error) {
       console.error('Error running SerialController:', error);
@@ -144,7 +141,6 @@ class SerialController {
 
 // Uso en tu aplicación
 const app = express();
-const io = new Server();
 
-const serialController = new SerialController(io, app);
+const serialController = new SerialController(app);
 serialController.run();
