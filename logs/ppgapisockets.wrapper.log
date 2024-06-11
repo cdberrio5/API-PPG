@@ -1,0 +1,2 @@
+2024-06-11 16:02:13 - Starting C:\Program Files\nodejs\node.exe  --trace-warnings C:\Users\crist\Downloads\API-PPG\node_modules\node-windows\lib\wrapper.js --file C:\Users\crist\Downloads\API-PPG\index.js --scriptoptions= --log "PPG-API-SOCKETS wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2024-06-11 16:02:13 - Started 13396

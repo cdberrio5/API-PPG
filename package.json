@@ -4,9 +4,7 @@
   "description": "Api para recibir datos por puerto serial y enviarlos por sockets",
   "main": "index.js",
   "scripts": {
-    "start": "npm run qckwinsvc && npm run service",
-    "qckwinsvc": "npm install qckwinsvc -g",
-    "service": "qckwinsvc"
+    "start": "node service.js --install >> logs/api.log 2>&1"
   },
   "keywords": [
     "API",
@@ -20,8 +18,12 @@
     "command-line-args": "^5.2.1",
     "events": "^3.3.0",
     "express": "^4.18.2",
+    "fs-extra": "^10.0.0",
     "ip": "^1.1.8",
     "serialport": "^12.0.0",
     "socket.io": "^4.7.2"
+  },
+  "devDependencies": {
+    "node-windows": "^1.0.0-beta.8"
   }
 }
