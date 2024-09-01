@@ -1,23 +1,51 @@
-const Service = require('node-windows').Service;
-const path = require('path');
+// index.js
+const { installService, uninstallService, isServiceInstalled, serviceInstance } = require('./serviceManager');
+const { startMonitoring, stopMonitoring } = require('./monitor');
+const logger = require('./logger');
 
-console.log("INICIANDO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+function handleServiceEvents() {
+  serviceInstance.on('start', () => {
+    logger.info('Servicio iniciado.');
+    startMonitoring();
+  });
 
-const svc = new Service({
-  name: 'PPG-API-SOCKETS',
-  description: 'Descripción del servicio',
-  script: path.join(__dirname, 'index.js'),
-  nodeOptions: ['--trace-warnings'],
-  logpath: path.join(__dirname, 'logs')
-});
+  serviceInstance.on('stop', () => {
+    logger.info('Servicio detenido.');
+    stopMonitoring();
+  });
 
-svc.on('install', function () {
-  console.log("started");
-  svc.start();
-});
-
-if (process.argv[2] === '--install') {
-  svc.install();
-} else if (process.argv[2] === '--uninstall') {
-  svc.uninstall();
+  serviceInstance.on('error', (err) => {
+    logger.error(`Error en el servicio: ${err.message}`);
+  });
 }
+
+function main() {
+  const command = process.argv[2];
+
+  switch (command) {
+    case '--install':
+      isServiceInstalled((installed) => {
+        if (installed) {
+          logger.warn('El servicio ya está instalado.');
+        } else {
+          installService();
+        }
+      });
+      break;
+    case '--uninstall':
+      isServiceInstalled((installed) => {
+        if (installed) {
+          uninstallService();
+        } else {
+          logger.warn('El servicio no está instalado.');
+        }
+      });
+      break;
+    default:
+      logger.error('Comando no reconocido. Usa --install o --uninstall.');
+      process.exit(1);
+  }
+}
+
+handleServiceEvents();
+main();

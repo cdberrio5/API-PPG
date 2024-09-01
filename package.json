@@ -4,7 +4,8 @@
   "description": "Api para recibir datos por puerto serial y enviarlos por sockets",
   "main": "index.js",
   "scripts": {
-    "start": "node service.js --install >> logs/api.log 2>&1"
+    "start": "node service.js --install",
+    "uninstall": "node service.js --uninstall"
   },
   "keywords": [
     "API",
@@ -15,13 +16,18 @@
   "author": "Cristian Berrio",
   "license": "ISC",
   "dependencies": {
+    "axios": "^1.7.7",
     "command-line-args": "^5.2.1",
+    "dotenv": "^16.4.5",
     "events": "^3.3.0",
     "express": "^4.18.2",
     "fs-extra": "^10.0.0",
     "ip": "^1.1.8",
+    "nodemailer": "^6.9.14",
     "serialport": "^12.0.0",
-    "socket.io": "^4.7.2"
+    "socket.io": "^4.7.2",
+    "winston": "^3.14.2",
+    "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
     "node-windows": "^1.0.0-beta.8"

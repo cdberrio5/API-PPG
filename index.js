@@ -5,6 +5,16 @@ const { EventEmitter } = require('events');
 const commandLineArgs = require('command-line-args');
 const { Server } = require('socket.io');
 const cors = require("cors");
+const fs = require('fs');
+const path = require('path');
+const logFilePath = path.join(__dirname, 'api.log');
+const logStream = fs.createWriteStream(logFilePath, { flags: 'a' });
+console.log = (message) => {
+  const timestamp = new Date().toISOString();
+  const logMessage = `[${timestamp}] Index: ${message}\n`;
+  logStream.write(logMessage);
+  process.stdout.write(logMessage);
+};
 
 const listSerialPorts = SerialPort.SerialPort.list;
 
@@ -118,6 +128,24 @@ class SerialController {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
+  startStatusMonitoring() {
+    setInterval(() => {
+      this.checkServerStatus();
+    }, 60000); // Verificar cada 60 segundos
+  }
+
+  checkServerStatus() {
+    http.get(`http://${ip.address()}:${this.serverPort}/hello`, (res) => {
+      if (res.statusCode !== 200) {
+        console.error(`El servidor no responde correctamente. Código de estado: ${res.statusCode}`);
+        // Aquí podrías implementar lógica para reiniciar el servidor si es necesario
+      }
+    }).on('error', (err) => {
+      console.error('Error al verificar el estado del servidor:', err.message);
+      // Aquí también podrías implementar lógica para manejar el error
+    });
+  }
+
   async run() {
     try {
       const options = commandLineArgs([
@@ -132,6 +160,7 @@ class SerialController {
         const loadConfig = await this.loadConfig();
         await this.initServer();
         await this.initFromConfigSerialPorts(loadConfig);
+        await this.startStatusMonitoring();
       }
     } catch (error) {
       console.error('Error running SerialController:', error);
