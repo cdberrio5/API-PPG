@@ -1,7 +1,7 @@
 // serviceManager.js
 const { Service } = require('node-windows');
 const { exec } = require('child_process');
-const config = require('./config');
+const config = require('../config/default');
 const logger = require('./logger');
 const path = require('path');
 
@@ -18,10 +18,6 @@ function installService() {
   svc.on('install', () => {
     logger.info('Servicio instalado correctamente.');
     svc.start();
-  });
-
-  svc.on('alreadyinstalled', () => {
-    logger.warn('El servicio ya está instalado.');
   });
 
   svc.on('start', () => {
